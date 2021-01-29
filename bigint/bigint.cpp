@@ -176,3 +176,57 @@ bigint bigint::operator=(char x[]) {
 	}
 	return number;
 }
+
+bigint bigint::timesDigit(const int x) {
+	bigint sum, temp;
+	
+	for (int i = 0; i < CAPACITY; ++i) {
+		temp.number[i] = number[i];
+	}
+
+	for (int i = 0; i < x; ++i) {
+		sum = sum + temp;
+	}
+
+	for (int i = 0; i < CAPACITY; ++i) {
+		number[i] = sum.number[i];
+	}
+
+	return number;
+}
+
+bigint bigint::timesTen(const int x) {
+	bigint temp(0);
+
+	for (int i = CAPACITY; i >= 0; --i) {
+		if (number[i] > 0) {
+			temp.number[i + x] = number[i];
+		}
+	}
+
+	//initialize the new value to the bigint
+	for (int i = 0; i < CAPACITY; ++i) {
+		number[i] = temp.number[i];
+	}
+
+	return number;
+}
+
+bigint bigint::operator*(bigint& B) {
+
+	//To compute A * B
+	//B[0] is 1s place, B[1] is 10s place, B[2] is 100s place, etc.
+	bigint temp;
+	bigint product(0);
+	for (int i = 0;i < CAPACITY;++i){
+		//product = product + ( (A * B[i]) * 10^i )
+		if (B[i] > 0) {
+			temp = timesDigit(B[i]);
+		}
+		product = product + temp.timesTen(i);
+		std::cout << product << "|";
+	}
+
+
+	return product;
+}

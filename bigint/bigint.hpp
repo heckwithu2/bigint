@@ -26,6 +26,10 @@ public:
 	bigint(const char[]);
 	bigint(int[]);
 	//methods/friends
+	bigint timesDigit(const int);
+	bigint timesTen(const int);
+	bigint operator*(bigint& B);
+
 	bigint operator=(char []);
 	int operator[] (const int index) const;
 	bigint operator+(bigint&);
