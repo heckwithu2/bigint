@@ -28,6 +28,14 @@ public:
 	bigint(const char[]);
 	bigint(int[]);
 
+	//rule of five
+	//ctor
+	bigint(const bigint&);//copy ctor
+	bigint(bigint &&) noexcept = default;//move ctor
+	bigint& operator=(const bigint&) = default;//copy assignment
+	bigint& operator=(bigint &&) noexcept = default;//move assignment
+	~bigint() noexcept = default;//dtor
+
 	//methods/friends
 	bigint timesDigit(const int);
 	bigint timesTen(const int);
@@ -44,7 +52,6 @@ public:
 	bigint operator+(int&);
 	bigint operator+(bigint&);
 	bigint operator=(char[]);
-	bigint operator=(bigint);
 	bool operator>(bigint&);
 	bool operator>=(bigint&);
 	bool operator>=(long long&);
