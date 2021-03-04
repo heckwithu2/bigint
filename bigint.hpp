@@ -31,9 +31,9 @@ public:
 	//rule of five
 	//ctor
 	bigint(const bigint&);//copy ctor
-	bigint(bigint &&) noexcept = default;//move ctor
-	bigint& operator=(const bigint&) = default;//copy assignment
-	bigint& operator=(bigint &&) noexcept = default;//move assignment
+	//bigint(bigint &&) noexcept = default;//move ctor
+	bigint& operator=(const bigint&);//copy assignment
+	//bigint& operator=(bigint &&) noexcept = default;//move assignment
 	~bigint() noexcept = default;//dtor
 
 	//methods/friends
@@ -134,6 +134,21 @@ bigint::bigint(const char charArrayToBigint[]) {
 		}
 	} size = finalSize;
 	this->checkIfSizeisAccurate();
+}
+
+bigint::bigint(const bigint& copy) {
+	this = copy;
+}
+
+bigint& bigint::operator=(const bigint& assignBigint) {
+	if (this != &assignBigint) {
+		//size
+		for (int i = 0; i < CAPACITY; ++i) {
+			number[i] = assignBigint.number[i];
+		}
+		this->checkIfSizeisAccurate();
+		return *this;
+	}	
 }
 
 void bigint::checkIfSizeisAccurate() {
@@ -327,15 +342,6 @@ bigint bigint::operator=(char x[]) {
 			number[bSize] = g;
 			bSize--;
 		}
-	}
-	this->checkIfSizeisAccurate();
-	return *this;
-}
-
-bigint bigint::operator=(bigint assignBigint) {
-	//size
-	for (int i = 0; i < CAPACITY; ++i) {
-		number[i] = assignBigint.number[i];
 	}
 	this->checkIfSizeisAccurate();
 	return *this;
