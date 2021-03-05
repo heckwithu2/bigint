@@ -48,6 +48,8 @@ public:
 	bigint operator+(int&);
 	bigint operator+(bigint&);
 	bigint operator=(char[]);
+	bigint operator=(const int&);
+	bigint operator=(const long long&);
 	bool operator>(bigint&);
 	bool operator>=(bigint&);
 	bool operator>=(long long&);
@@ -313,21 +315,23 @@ int bigint::operator[] (const int findAtPosition) const {
 	return number[findAtPosition];
 }
 
-
-bigint bigint::operator=(char x[]) {
+bigint bigint::operator=(char rhs[]) {
+	//remove old number if present
 	for (int i = 0; i < CAPACITY; ++i) {
 		number[i] = 0;
 	}
 	int size = 0;
-	while (x[size] != '\0') {
+
+	//make new size
+	while (rhs[size] != '\0') {
 		++size;
 	}
 
 	int bSize = size - 1;
 	//find actual numbers?
 	for (int i = 0; size > i; ++i) {
-		if (x[i] >= 0) {
-			char f = x[i];
+		if (rhs[i] >= 0) {
+			char f = rhs[i];
 			int g = f - '0';
 			number[bSize] = g;
 			bSize--;
@@ -337,32 +341,47 @@ bigint bigint::operator=(char x[]) {
 	return *this;
 }
 
-bigint& bigint::operator=(bigint assignBigint) {
+bigint& bigint::operator=(bigint rhs) {
 	//self assignment check
-	if (this != &assignBigint) {
-		//size
+	if (this != &rhs) {
 		for (int i = 0; i < CAPACITY; ++i) {
-			number[i] = assignBigint.number[i];
+			number[i] = rhs.number[i];
 		}
 		this->checkIfSizeisAccurate();
 		return *this;
 	} return *this;
 }
 
-bigint bigint::timesDigit(const int x) {
-	bigint sum, temp;
+bigint bigint::operator=(const long long& rhs) {
+	bigint copy(rhs);
+	if (this != &copy) {
+		for (int i = 0; i < CAPACITY; ++i) {
+			number[i] = copy.number[i];
+		}
+		this->checkIfSizeisAccurate();
+		return *this;
+	} return *this;
+}
 
-	for (int i = 0; i < CAPACITY; ++i) {
-		temp.number[i] = number[i];
-	}
+bigint bigint::operator=(const int& rhs) {
+	bigint copy(rhs);
+	if (this != &copy) {
+		for (int i = 0; i < CAPACITY; ++i) {
+			number[i] = copy.number[i];
+		}
+		this->checkIfSizeisAccurate();
+		return *this;
+	} return *this;
+}
+
+bigint bigint::timesDigit(const int multiplyBy) {
+	bigint sum;
 	//make sum of all additions
-	for (int i = 0; i < x; ++i) {
-		sum = sum + temp;
+	for (int i = 0; i < multiplyBy; ++i) {
+		sum = sum + *this;
 	}
-	//set number
-	for (int i = 0; i < CAPACITY; ++i) {
-		number[i] = sum.number[i];
-	}
+	
+	*this = sum;
 	this->checkIfSizeisAccurate();
 	return *this;
 }
@@ -443,6 +462,7 @@ bigint bigint::operator-(bigint& sub) {
 		for (int i = 0; i < CAPACITY; ++i) {
 			number[i] = 0;
 		} size = 0;
+		//std::cout << "Your result is negative, this is not implemented.";
 		return *this;
 	}
 }
@@ -451,20 +471,16 @@ bigint bigint::operator-(int& intToSubtract) {
 	bigint sub(intToSubtract);
 	if (*this >= sub) {
 		//subtraction with an int
-		bigint temp(0);
-		//copy left side
-		for (int i = 0; i < CAPACITY; ++i) {
-			temp.number[i] = number[i];
-		}
+		bigint temp(intToSubtract);
 		temp = temp - sub;
-		temp.checkIfSizeisAccurate();
-		return temp;
+		return *this = temp;
 	}
 	else {
 		//you had a negative number!
 		for (int i = 0; i < CAPACITY; ++i) {
 			number[i] = 0;
 		} size = 0;
+		//std::cout << "Your result is negative, this is not implemented.";
 		return *this;
 	}
 }
@@ -473,19 +489,16 @@ bigint bigint::operator-(long long& longLongToSubtract) {
 	bigint sub(longLongToSubtract);
 	if (*this >= sub) {
 		//subtraction with an long long
-		bigint temp(0);
-		//copy left side
-		for (int i = 0; i < CAPACITY; ++i) {
-			temp.number[i] = number[i];
-		}
-		temp.checkIfSizeisAccurate();
-		return temp;
+		bigint temp(longLongToSubtract);
+		temp = temp - sub;
+		return *this = temp;
 	}
 	else {
 		//you had a negative number!
 		for (int i = 0; i < CAPACITY; ++i) {
 			number[i] = 0;
 		} size = 0;
+		//std::cout << "Your result is negative, this is not implemented.";
 		return *this;
 	}
 }
@@ -504,6 +517,7 @@ bigint bigint::operator/(bigint& bigintToDivideBy) {
 		result = result + one;
 	} while (temp > zero);
 	result.checkIfSizeisAccurate();
+	//std::cout << "Your result is floored potentially.";
 	return result;
 }
 
@@ -531,10 +545,10 @@ bigint bigint::operator*(bigint& multiplyBigint) {
 }
 
 bigint factorial(bigint upperBound, bigint lowerBound) {
-	bigint lowerTemp(0), upperTemp(0), one(1), range(0);
-	upperTemp = upperBound;
-	lowerTemp = lowerBound;
-	range = upperTemp - lowerTemp;
+	bigint upperTemp = upperBound;
+	bigint lowerTemp = lowerBound;
+	bigint range = upperTemp - lowerTemp;
+	bigint one(1);
 	//cant really use recursion here because of the nature of my custom type, a simple loop will do
 	do {
 		upperBound = upperBound - one;
