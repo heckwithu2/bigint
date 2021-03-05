@@ -11,44 +11,40 @@
 //#include <cstdlib>
 
 
-const int CAPACITY = 400;
 
+const int CAPACITY = 400;
 
 class bigint {
 private:
+	const int capacity = CAPACITY;
 	//Tells how many digits there are that are not zero
 	int size = 0;
 	//determines the max capacity
-	int number[CAPACITY];
+	int number[CAPACITY] = {0};
 public:
 	//constructers
 	bigint();
-	bigint(int);
-	bigint(long long);
+	bigint(const int&);
+	bigint(const long long&);
 	bigint(const char[]);
-	bigint(int[]);
+	bigint(const int[]);
 
-	//rule of five
-	//ctor
-	bigint(const bigint&);//copy ctor
-	//bigint(bigint &&) noexcept = default;//move ctor
-	bigint& operator=(const bigint&);//copy assignment
-	//bigint& operator=(bigint &&) noexcept = default;//move assignment
-	~bigint() noexcept = default;//dtor
-
-	//methods/friends
+	//methods
 	bigint timesDigit(const int);
 	bigint timesTen(const int);
 	void checkIfSizeisAccurate();
-	//accessor at a specific index, the const at the end is for accessors
+
+	//accessors
 	int operator[] (const int) const;
+	int getSize() const;
+	int getCapacity() const;
 
 	//operator overloading
 	bigint operator-(long long&);
 	bigint operator-(int&);
 	bigint operator-(bigint&);
 	bigint operator/(bigint&);
-	bigint operator*(bigint);
+	bigint operator*(bigint&);
 	bigint operator+(int&);
 	bigint operator+(bigint&);
 	bigint operator=(char[]);
@@ -56,9 +52,13 @@ public:
 	bool operator>=(bigint&);
 	bool operator>=(long long&);
 	bool operator>=(int&);
-	bool operator==(const int);
-	bool operator==(const bigint);
+	bool operator==(const int&);
+	bool operator==(const bigint&);
 	bool operator==(const char x[]);
+
+	//Rule of three
+	bigint& operator=(bigint);
+	bigint(const bigint&);
 
 	//friends
 	friend bigint factorial(bigint, bigint);
@@ -72,37 +72,41 @@ bigint::bigint() {
 	} size = 0;
 }
 
-bigint::bigint(int numToBigint) {
-	//make sure array is initialized to zero once more
-	for (int i = 0; i < CAPACITY; ++i) {
-		number[i] = 0;
+bigint::bigint(const bigint& copy) {
+	if (this != &copy) {
+		size = copy.size;
+		for (int i = 0; i < size; ++i) {
+			number[i] = copy.number[i];
+		}
 	}
+}
+
+bigint::bigint(const int& numToBigint) {
+	int copy = numToBigint;
 	//begin determining the size of the number right to left, ones at 0, tens at 1 etc...
 	int countSize = 0;
-	while (numToBigint > 0) {
-		number[countSize] = numToBigint % 10;
-		numToBigint = numToBigint / 10;
+	while (copy > 0) {
+		number[countSize] = copy % 10;
+		copy = copy / 10;
 		countSize++;
 	} size = countSize;
 	this->checkIfSizeisAccurate();
 }
 
-bigint::bigint(long long numToBigint) {
-	//make sure array is initialized too zero once more
-	for (int i = 0; i < CAPACITY; ++i) {
-		number[i] = 0;
-	}
+bigint::bigint(const long long& numToBigint) {
+	long long copy = numToBigint;
 	//begin determining the size of the number right to left, ones at 0, tens at 1 etc...
 	int countSize = 0;
-	while (numToBigint > 0) {
-		number[countSize] = numToBigint % 10;
-		numToBigint = numToBigint / 10;
+	while (copy > 0) {
+		number[countSize] = copy % 10;
+		copy = copy / 10;
 		countSize++;
 	} size = countSize;
 	this->checkIfSizeisAccurate();
 }
 
-bigint::bigint(int x[]) {
+
+bigint::bigint(const int x[]) {
 	for (int i = 0; i < CAPACITY; ++i) {
 		number[i] = x[i];
 	}
@@ -110,13 +114,7 @@ bigint::bigint(int x[]) {
 }
 
 bigint::bigint(const char charArrayToBigint[]) {
-	for (int i = 0; i < CAPACITY; ++i) {
-		number[i] = 0;
-	}
-
 	//find size
-	size = 0;
-
 	while (charArrayToBigint[size] != '\0') {
 		++size;
 	}
@@ -134,21 +132,6 @@ bigint::bigint(const char charArrayToBigint[]) {
 		}
 	} size = finalSize;
 	this->checkIfSizeisAccurate();
-}
-
-bigint::bigint(const bigint& copy) {
-	this = copy;
-}
-
-bigint& bigint::operator=(const bigint& assignBigint) {
-	if (this != &assignBigint) {
-		//size
-		for (int i = 0; i < CAPACITY; ++i) {
-			number[i] = assignBigint.number[i];
-		}
-		this->checkIfSizeisAccurate();
-		return *this;
-	}	
 }
 
 void bigint::checkIfSizeisAccurate() {
@@ -172,10 +155,10 @@ std::ostream& operator<<(std::ostream& os, const bigint& outputThisBigint) {
 			iterate = 0;
 		}
 	}
-		return os;
+	return os;
 }
 
-bool bigint::operator==(const int checkAgainstInt) {
+bool bigint::operator==(const int& checkAgainstInt) {
 	bigint b(checkAgainstInt);
 	for (int i = 0; i < CAPACITY; ++i) {
 		if (number[i] != b.number[i]) {
@@ -184,7 +167,7 @@ bool bigint::operator==(const int checkAgainstInt) {
 	} return true;
 }
 
-bool bigint::operator==(const bigint checkAgainstBigint) {
+bool bigint::operator==(const bigint& checkAgainstBigint) {
 	for (int i = 0; i < CAPACITY; ++i) {
 		if (number[i] != checkAgainstBigint.number[i]) {
 			return false;
@@ -280,6 +263,13 @@ bool bigint::operator>(bigint& checkAgainstBigint) {
 	return false;
 }
 
+int bigint::getSize() const{
+	return size;
+}
+
+int bigint::getCapacity() const{
+	return capacity;
+}
 bigint bigint::operator+(bigint& addBigint) {
 	bigint sum;
 
@@ -345,6 +335,18 @@ bigint bigint::operator=(char x[]) {
 	}
 	this->checkIfSizeisAccurate();
 	return *this;
+}
+
+bigint& bigint::operator=(bigint assignBigint) {
+	//self assignment check
+	if (this != &assignBigint) {
+		//size
+		for (int i = 0; i < CAPACITY; ++i) {
+			number[i] = assignBigint.number[i];
+		}
+		this->checkIfSizeisAccurate();
+		return *this;
+	} return *this;
 }
 
 bigint bigint::timesDigit(const int x) {
@@ -505,7 +507,7 @@ bigint bigint::operator/(bigint& bigintToDivideBy) {
 	return result;
 }
 
-bigint bigint::operator*(bigint multiplyBigint) {
+bigint bigint::operator*(bigint& multiplyBigint) {
 	//To compute A * B
 	//B[0] is 1s place, B[1] is 10s place, B[2] is 100s place, etc.
 	bigint temp;
