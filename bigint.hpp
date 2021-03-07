@@ -8,9 +8,7 @@
 #define BIGINT_HPP_
 #include <iostream>
 #include <fstream>
-//#include <cstdlib>
-
-
+#include <utility>
 
 const int CAPACITY = 400;
 
@@ -29,10 +27,17 @@ public:
 	bigint(const char[]);
 	bigint(const int[]);
 
+	bigint(const bigint&);	
+	bigint& operator=(bigint); //copy and swap
+	bigint& operator=(const char[]);
+	bigint& operator=(const int&);
+	bigint& operator=(const long long&);
+	
 	//methods
 	bigint timesDigit(const int);
 	bigint timesTen(const int);
 	void checkIfSizeisAccurate();
+	void swap(bigint&);
 
 	//accessors
 	int operator[] (const int) const;
@@ -40,27 +45,20 @@ public:
 	int getCapacity() const;
 
 	//operator overloading
-	bigint operator-(long long&);
-	bigint operator-(int&);
-	bigint operator-(bigint&);
-	bigint operator/(bigint&);
-	bigint operator*(bigint&);
-	bigint operator+(int&);
-	bigint operator+(bigint&);
-	bigint operator=(char[]);
-	bigint operator=(const int&);
-	bigint operator=(const long long&);
-	bool operator>(bigint&);
-	bool operator>=(bigint&);
-	bool operator>=(long long&);
-	bool operator>=(int&);
-	bool operator==(const int&);
-	bool operator==(const bigint&);
-	bool operator==(const char x[]);
-
-	//Rule of three
-	bigint& operator=(bigint);
-	bigint(const bigint&);
+	bigint operator-(long long&) const; //no negative support
+	bigint operator-(int&) const; //no negative support
+	bigint operator-(bigint&) const; //no negative support
+	bigint operator/(bigint&) const;//not fully functioning: IE no decimal support
+	bigint operator*(bigint&) const;
+	bigint operator+(int&) const;
+	bigint operator+(bigint&) const;
+	bool operator>(bigint&) const;
+	bool operator>=(bigint&) const;
+	bool operator>=(long long&) const;
+	bool operator>=(int&) const;
+	bool operator==(const int&) const;
+	bool operator==(const bigint&) const;
+	bool operator==(const char x[]) const;
 
 	//friends
 	friend bigint factorial(bigint, bigint);
@@ -91,8 +89,8 @@ bigint::bigint(const int& numToBigint) {
 		number[countSize] = copy % 10;
 		copy = copy / 10;
 		countSize++;
-	} size = countSize;
-	this->checkIfSizeisAccurate();
+	} 
+	size = countSize;
 }
 
 bigint::bigint(const long long& numToBigint) {
@@ -103,8 +101,8 @@ bigint::bigint(const long long& numToBigint) {
 		number[countSize] = copy % 10;
 		copy = copy / 10;
 		countSize++;
-	} size = countSize;
-	this->checkIfSizeisAccurate();
+	} 
+	size = countSize;
 }
 
 
@@ -132,13 +130,14 @@ bigint::bigint(const char charArrayToBigint[]) {
 			finalSize++;
 			bSize--;
 		}
-	} size = finalSize;
-	this->checkIfSizeisAccurate();
+	} 
+	size = finalSize;
 }
 
 void bigint::checkIfSizeisAccurate() {
 	//make sure size is correct!
 	//loop that counts backwards until a non zero is found
+	size = 0;
 	for (int i = CAPACITY-1; i >= 0; --i) {
 		if (number[i] > 0) {
 			size = i + 1;
@@ -147,65 +146,60 @@ void bigint::checkIfSizeisAccurate() {
 	}
 }
 
-std::ostream& operator<<(std::ostream& os, const bigint& outputThisBigint) {
+std::ostream& operator<<(std::ostream& os, const bigint& outputThisBigint){
 	for (int i = outputThisBigint.size - 1;i >= 0; --i) {
-		int iterate = 0;
 		os << outputThisBigint.number[i];
-		iterate++;
-		if (iterate == 80) {
-			os << std::endl;
-			iterate = 0;
-		}
 	}
 	return os;
 }
 
-bool bigint::operator==(const int& checkAgainstInt) {
-	bigint b(checkAgainstInt);
+bool bigint::operator==(const int& checkAgainstInt) const{
+	bigint rhs(checkAgainstInt);
 	for (int i = 0; i < CAPACITY; ++i) {
-		if (number[i] != b.number[i]) {
+		if (number[i] != rhs.number[i]) {
 			return false;
 		}
 	} return true;
 }
 
-bool bigint::operator==(const bigint& checkAgainstBigint) {
+bool bigint::operator==(const bigint& rhs) const{
 	for (int i = 0; i < CAPACITY; ++i) {
-		if (number[i] != checkAgainstBigint.number[i]) {
+		if (number[i] != rhs.number[i]) {
 			return false;
 		}
 	} return true;
 }
 
 
-bool bigint::operator==(const char checkAgainstCharArray[]) {
-	bigint b(checkAgainstCharArray);
+bool bigint::operator==(const char checkAgainstCharArray[]) const{
+	bigint rhs(checkAgainstCharArray);
 	for (int i = 0; i < CAPACITY; ++i) {
-		if (number[i] != b.number[i]) {
+		if (number[i] != rhs.number[i]) {
 			return false;
 		}
 	} return true;
 }
 
-bool bigint::operator>=(bigint& checkAgainstBigint) {
-	this->checkIfSizeisAccurate();
-	checkAgainstBigint.checkIfSizeisAccurate();
+bool bigint::operator>=(bigint& rhs) const{
+	bigint copy = *this;
+	copy.checkIfSizeisAccurate();
+	rhs.checkIfSizeisAccurate();
 	//if left is bigger than right
-	if (size > checkAgainstBigint.size) {
+	if (copy.size > rhs.size) {
 		return true;
 	}
-	else if (size < checkAgainstBigint.size) {
+	else if (copy.size < rhs.size) {
 		return false;
 	}
-	if (size == checkAgainstBigint.size) {
-		for (int i = size; i >= 0; --i) {
+	if (copy.size == rhs.size) {
+		for (int i = copy.size; i >= 0; --i) {
 			//if same size and number
-			if (*this == checkAgainstBigint) {
+			if (copy == rhs) {
 				//if same size but not same number
-				if (number[size] > checkAgainstBigint.number[size]) {
+				if (copy.number[copy.size] > rhs.number[copy.size]) {
 					return true;
 				}
-				else if (number[size] < checkAgainstBigint.number[size]) {
+				else if (copy.number[copy.size] < rhs.number[copy.size]) {
 					return false;
 				}
 			} else {
@@ -217,43 +211,44 @@ bool bigint::operator>=(bigint& checkAgainstBigint) {
 	return false;
 }
 
-bool bigint::operator>=(int& checkAgainstInt) {
-	bigint checkAgainstBigint(checkAgainstInt);
-	if (*this >= checkAgainstInt) {
+bool bigint::operator>=(int& checkAgainstInt) const{
+	bigint rhs(checkAgainstInt);
+	if (*this >= rhs) {
 		return true;
 	} else {
 		return false;
 	}
 }
 
-bool bigint::operator>=(long long& checkAgainstLongLong) {
-	bigint checkAgainstBigint(checkAgainstLongLong);
-	if (*this >= checkAgainstLongLong) {
+bool bigint::operator>=(long long& checkAgainstLongLong) const{
+	bigint rhs(checkAgainstLongLong);
+	if (*this >= rhs) {
 		return true;
 	} else {
 		return false;
 	}
 }
 
-bool bigint::operator>(bigint& checkAgainstBigint) {
-	this->checkIfSizeisAccurate();
-	checkAgainstBigint.checkIfSizeisAccurate();
+bool bigint::operator>(bigint& rhs) const{
+	bigint copy = *this;
+	copy.checkIfSizeisAccurate();
+	rhs.checkIfSizeisAccurate();
 	//if left is bigger than right
-	if (size > checkAgainstBigint.size) {
+	if (copy.size > rhs.size) {
 		return true;
 	}
-	else if (size < checkAgainstBigint.size) {
+	else if (copy.size < rhs.size) {
 		return false;
 	}
-	if (size == checkAgainstBigint.size) {
-		for (int i = size; i >= 0; --i) {
+	if (copy.size == rhs.size) {
+		for (int i = copy.size; i >= 0; --i) {
 			//if same size and number
-			if (*this == checkAgainstBigint) {
+			if (copy == rhs) {
 				//if same size but not same number
-				if (number[size] > checkAgainstBigint.number[size]) {
+				if (copy.number[copy.size] > rhs.number[copy.size]) {
 					return true;
 				}
-				else if (number[size] < checkAgainstBigint.number[size]) {
+				else if (copy.number[copy.size] < rhs.number[copy.size]) {
 					return false;
 				}
 			} else {
@@ -272,7 +267,7 @@ int bigint::getSize() const{
 int bigint::getCapacity() const{
 	return capacity;
 }
-bigint bigint::operator+(bigint& addBigint) {
+bigint bigint::operator+(bigint& addBigint) const{
 	bigint sum;
 
 	int ones = 0;
@@ -311,14 +306,15 @@ bigint bigint::operator+(bigint& addBigint) {
 }
 
 
-int bigint::operator[] (const int findAtPosition) const {
-	return number[findAtPosition];
+int bigint::operator[] (const int index) const {
+	return number[index];
 }
 
-bigint bigint::operator=(char rhs[]) {
+bigint& bigint::operator=(const char rhs[]) {
+	bigint copy = *this;
 	//remove old number if present
 	for (int i = 0; i < CAPACITY; ++i) {
-		number[i] = 0;
+		copy.number[i] = 0;
 	}
 	int size = 0;
 
@@ -337,41 +333,32 @@ bigint bigint::operator=(char rhs[]) {
 			bSize--;
 		}
 	}
-	this->checkIfSizeisAccurate();
+	copy.checkIfSizeisAccurate();
+	*this = copy;
 	return *this;
 }
 
 bigint& bigint::operator=(bigint rhs) {
 	//self assignment check
-	if (this != &rhs) {
-		for (int i = 0; i < CAPACITY; ++i) {
-			number[i] = rhs.number[i];
-		}
-		this->checkIfSizeisAccurate();
-		return *this;
-	} return *this;
+	swap(rhs);
+	return *this;
 }
 
-bigint bigint::operator=(const long long& rhs) {
+bigint& bigint::operator=(const long long& rhs) {
 	bigint copy(rhs);
-	if (this != &copy) {
-		for (int i = 0; i < CAPACITY; ++i) {
-			number[i] = copy.number[i];
-		}
-		this->checkIfSizeisAccurate();
-		return *this;
-	} return *this;
+	*this = copy;
+	return *this;
 }
 
-bigint bigint::operator=(const int& rhs) {
+bigint& bigint::operator=(const int& rhs) {
 	bigint copy(rhs);
-	if (this != &copy) {
-		for (int i = 0; i < CAPACITY; ++i) {
-			number[i] = copy.number[i];
-		}
-		this->checkIfSizeisAccurate();
-		return *this;
-	} return *this;
+	*this = copy;
+	return *this;
+}
+
+void bigint::swap(bigint& swap) {
+	std::swap(size, swap.size);
+	std::swap(number, swap.number);
 }
 
 bigint bigint::timesDigit(const int multiplyBy) {
@@ -381,9 +368,8 @@ bigint bigint::timesDigit(const int multiplyBy) {
 		sum = sum + *this;
 	}
 	
-	*this = sum;
-	this->checkIfSizeisAccurate();
-	return *this;
+	sum.checkIfSizeisAccurate();
+	return sum;
 }
 
 bigint bigint::timesTen(const int x) {
@@ -411,7 +397,7 @@ bigint bigint::timesTen(const int x) {
 	return *this;
 }
 
-bigint bigint::operator+(int& add) {
+bigint bigint::operator+(int& add) const{
 	bigint addBig(add);
 	//make a bigint called left, a copy from this local number
 	//initialize the implicit value to the temp bigint
@@ -424,7 +410,7 @@ bigint bigint::operator+(int& add) {
 	return temp;
 }
 
-bigint bigint::operator-(bigint& sub) {
+bigint bigint::operator-(bigint& sub) const{
 	if (*this >= sub) {
 		//subtraction with a bigint
 		bigint difference(0);
@@ -458,59 +444,51 @@ bigint bigint::operator-(bigint& sub) {
 		difference.checkIfSizeisAccurate();
 		return difference;
 	} else {
-		//you had a potential negative number!
-		for (int i = 0; i < CAPACITY; ++i) {
-			number[i] = 0;
-		} size = 0;
+		//you had a negative number!
+		bigint zero(0);
+		return zero;
 		//std::cout << "Your result is negative, this is not implemented.";
-		return *this;
 	}
 }
 
-bigint bigint::operator-(int& intToSubtract) {
+bigint bigint::operator-(int& intToSubtract) const{
 	bigint sub(intToSubtract);
 	if (*this >= sub) {
 		//subtraction with an int
 		bigint temp(intToSubtract);
 		temp = temp - sub;
-		return *this = temp;
+		temp.checkIfSizeisAccurate();
+		return temp;
 	}
 	else {
 		//you had a negative number!
-		for (int i = 0; i < CAPACITY; ++i) {
-			number[i] = 0;
-		} size = 0;
+		bigint zero(0);
+		return zero;
 		//std::cout << "Your result is negative, this is not implemented.";
-		return *this;
 	}
 }
 
-bigint bigint::operator-(long long& longLongToSubtract) {
+bigint bigint::operator-(long long& longLongToSubtract) const{
 	bigint sub(longLongToSubtract);
 	if (*this >= sub) {
 		//subtraction with an long long
 		bigint temp(longLongToSubtract);
 		temp = temp - sub;
-		return *this = temp;
+		temp.checkIfSizeisAccurate();
+		return temp;
 	}
 	else {
 		//you had a negative number!
-		for (int i = 0; i < CAPACITY; ++i) {
-			number[i] = 0;
-		} size = 0;
+		bigint zero(0);
+		return zero;
 		//std::cout << "Your result is negative, this is not implemented.";
-		return *this;
 	}
 }
 
-bigint bigint::operator/(bigint& bigintToDivideBy) {
+bigint bigint::operator/(bigint& bigintToDivideBy) const{
 	//division, this will be rough division, no decimal support, everything will be floored to the divider
-	bigint temp(0), zero(0);
+	bigint temp(*this), zero(0);
 	bigint one(1);
-	for (int i = 0; i < CAPACITY; ++i) {
-		temp.number[i] = number[i];
-	}
-	temp.checkIfSizeisAccurate();
 	bigint result(0);
 	do {
 		temp = temp - bigintToDivideBy;
@@ -521,7 +499,7 @@ bigint bigint::operator/(bigint& bigintToDivideBy) {
 	return result;
 }
 
-bigint bigint::operator*(bigint& multiplyBigint) {
+bigint bigint::operator*(bigint& multiplyBigint) const{
 	//To compute A * B
 	//B[0] is 1s place, B[1] is 10s place, B[2] is 100s place, etc.
 	bigint temp;
